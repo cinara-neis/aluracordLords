@@ -1,34 +1,7 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
 import appConfig from '../config.json';
-
-function GlobalStyle() {
-    return (
-      <style global jsx>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          list-style: none;
-        }
-        body {
-          font-family: 'Open Sans', sans-serif;
-        }
-        /* App fit Height */ 
-        html, body, #__next {
-          min-height: 100vh;
-          display: flex;
-          flex: 1;
-        }
-        #__next {
-          flex: 1;
-        }
-        #__next > * {
-          flex: 1;
-        }
-        /* ./App fit Height */ 
-      `}</style>
-    );
-  }
+import React from 'react';
+import { useRouter } from 'next/router';
 
 function Title(props){
     console.log(props);
@@ -62,11 +35,31 @@ function Title(props){
 //   export default HomePage;
 
 export default function PaginaInicial() {
-    const username = 'LordLayKon';
-  
+    //const username = 'cinara-neis';
+
+    const [username, setUsername] = React.useState('');
+    const roteamento = useRouter();
+    const url = `https://api.github.com/users/${username}`;
+    const image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTulwf508vr4HJhofCSn7-ppL9m2TgthqNSZg&usqp=CAU";
+    
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        var nome = document.getElementById("nomePerfil")
+        nome.innerText = username.length>2? data.name : ' Nome '
+        var empresa = document.getElementById("Empresa")
+        empresa.innerText = username.length>2? data.company : ' Empresa '
+        var email =  document.getElementById("Email")
+        email.innerText = username.length>2?data.email : ' Email '
+        var localizacao = document.getElementById("Localizacao")
+        localizacao.innerText = username.length>2? data.location : ' Localizacao '
+        var seguidores = document.getElementById("Seguidores")
+        seguidores.innerText = username.length>2? data.followers: ' Seguidores '
+    })
+    .catch(error => console.log(error));
+
     return (
       <>
-        <GlobalStyle />
         <Box
           styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -93,17 +86,44 @@ export default function PaginaInicial() {
             {/* Formulário */}
             <Box
               as="form"
+              onSubmit={function (event){
+                event.preventDefault();
+                roteamento.push('/chat')
+                // window.location.href = '/chat';
+              }}
               styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
               }}
             >
-              <Title tag="h2">Boas vindas de volta!</Title>
+              <Title tag="h2">LordsCord!</Title>
               <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[600] }}>
                 {appConfig.name}
               </Text>
-  
+              
+              {/* <input 
+                type="text" 
+                value= {username}
+                onChange={function (event){
+                  console.log('usuario digitou', event.target.value);
+                  //onde ta o valor?
+                  const valor = event.target.value;
+                  //trocar o valor da variavel
+                  //atraves do react e avise quem precisa
+                  setUsername(valor);
+                  }}
+                /> */}
               <TextField
+                value= {username}
+                onChange={function (event){
+                  console.log('usuario digitou', event.target.value);
+                  //onde ta o valor?
+                  const valor = event.target.value;
+                  //trocar o valor da variavel
+                  //atraves do react e avise quem precisa
+                  setUsername(valor);
+                  }}
+                placeholder="Digite seu usuário"
                 fullWidth
                 textFieldColors={{
                   neutral: {
@@ -150,7 +170,7 @@ export default function PaginaInicial() {
                   borderRadius: '100%',
                   marginBottom: '40px',
                 }}
-                src={`https://avatars.githubusercontent.com/u/80927757?s=96&v=4`}
+                src={username.length > 2 ? `https://github.com/${username}.png`: image}
               />
               <Text
                 variant="body4"
@@ -161,7 +181,7 @@ export default function PaginaInicial() {
                   borderRadius: '1000px'
                 }}
               >
-                {username}
+                {username.length > 2 ? username : 'Wesley'}
               </Text>
             </Box>
             {/* Photo Area */}
@@ -169,4 +189,5 @@ export default function PaginaInicial() {
         </Box>
       </>
     );
-  }
+}
+        
