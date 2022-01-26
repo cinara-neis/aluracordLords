@@ -20,25 +20,13 @@ function Title(props){
     );
 }
 
-
-
-// function HomePage() {
-//     return(
-//         <div>
-//             <GlobalStyle/>
-//             <Title tag="h2">Boas vindas de volta!</Title>
-//             <h2>Aluracord - Alura Matrix</h2>
-//         </div>
-//     )
-//   }
-  
-//   export default HomePage;
-
 export default function PaginaInicial() {
     //const username = 'cinara-neis';
 
     const [username, setUsername] = React.useState('');
-    const roteamento = useRouter();
+    const [userExists, setUserExist] = React.useState(true);
+    const [userPhoto, setUserPhoto] = React.useState(username);
+    const router = useRouter();
     const url = `https://api.github.com/users/${username}`;
     const image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTulwf508vr4HJhofCSn7-ppL9m2TgthqNSZg&usqp=CAU";
     
@@ -86,43 +74,67 @@ export default function PaginaInicial() {
             {/* Formulário */}
             <Box
               as="form"
-              onSubmit={function (event){
-                event.preventDefault();
-                roteamento.push('/chat')
-                // window.location.href = '/chat';
-              }}
               styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
+              }}
+              
+              onSubmit={async function (event){
+                event.preventDefault();
+                let username = userPhoto;
+                // window.location.href = '/chat';
+                var gitHubUrl = `https://api.github.com/users/${username}`;
+                const response = await fetch(gitHubUrl);
+                const jsonData = await response.json();
+                if (jsonData && jsonData.message !== "Not Found") {
+                  router.push({
+                    pathname:'/chat',
+                    query:{username:userPhoto}
+                  });
+                }else if (username !== "") {
+                    console.log('Username does not exist');
+                    setUserExist(false)
+                }
               }}
             >
               <Title tag="h2">LordsCord!</Title>
               <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[600] }}>
                 {appConfig.name}
               </Text>
+            {!userExists?
+            <Text
+              variant="body4"
               
-              {/* <input 
-                type="text" 
-                value= {username}
-                onChange={function (event){
-                  console.log('usuario digitou', event.target.value);
-                  //onde ta o valor?
-                  const valor = event.target.value;
-                  //trocar o valor da variavel
-                  //atraves do react e avise quem precisa
-                  setUsername(valor);
-                  }}
-                /> */}
+              styleSheet={{
+                color: 'red',
+                backgroundColor: appConfig.theme.colors.neutrals[900],
+                padding: '3px 10px',
+                borderRadius: '1000px',
+                marginBottom:'4px'
+              }}
+            >
+              Usuário não encontrado
+            </Text>
+            :""}
               <TextField
                 value= {username}
-                onChange={function (event){
-                  console.log('usuario digitou', event.target.value);
-                  //onde ta o valor?
-                  const valor = event.target.value;
-                  //trocar o valor da variavel
-                  //atraves do react e avise quem precisa
-                  setUsername(valor);
-                  }}
+                onChange={async function (event){
+                  let name = event.target.value;
+                  setUserExist(true)
+                  setUsername(name)
+
+                  var gitHubUrl = `https://api.github.com/users/${username}`;
+
+                  const response = await fetch(gitHubUrl);
+                  const jsonData = await response.json();
+                  if (!(jsonData && jsonData.message !== "Not Found") && username !== "") {
+                    console.log('Username does not exist');
+                    setUserExist(false)
+                  }
+                  if(name.length>2){
+                    setUserPhoto(name);
+                   }
+                }}
                 placeholder="Digite seu usuário"
                 fullWidth
                 textFieldColors={{
@@ -165,13 +177,15 @@ export default function PaginaInicial() {
                 minHeight: '240px',
               }}
             >
+            {userExists?
               <Image
                 styleSheet={{
-                  borderRadius: '100%',
-                  marginBottom: '40px',
+                  borderRadius: '50%',
+                  marginBottom: '16px',
                 }}
                 src={username.length > 2 ? `https://github.com/${username}.png`: image}
               />
+            :""}
               <Text
                 variant="body4"
                 styleSheet={{
