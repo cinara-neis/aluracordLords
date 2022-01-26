@@ -97,38 +97,38 @@ export default function  GitUserPage(){
                                 });
                             }}
                             >
-                                <Text
-                                variant="body4"
-                                styleSheet={{
-                                    color: appConfig.theme.colors.neutrals[200],
-                                    backgroundColor: appConfig.theme.colors.neutrals[900],
-                                    padding: '3px 10px',
-                                    borderRadius: '1000px',
-                                    margin:'10px'
-                                }}
-                                >
-                                Link: <Text variant="body4"styleSheet={{
-                                    color: appConfig.theme.colors.neutrals[200],
-                                    backgroundColor: appConfig.theme.colors.neutrals[600],
-                                    padding: '3px 10px',
-                                    borderRadius: '1000px'
-                                }} tag="a"href={userData.html_url}>{userData.html_url}</Text>
-                                <br/>
-                                Seguidores: {userData.followers}
-                                <br/>
-                                Seguindo: {userData.following}
-                                </Text>
-                                <Button
-                                    type='submit'
-                                    label='Voltar'
-                                    fullWidth
-                                    buttonColors={{
-                                        contrastColor: appConfig.theme.colors.neutrals["000"],
-                                        mainColor: appConfig.theme.colors.primary[500],
-                                        mainColorLight: appConfig.theme.colors.primary[400],
-                                        mainColorStrong: appConfig.theme.colors.primary[600],
-                                    }}
-                                    />
+                        <Text
+                        variant="body4"
+                        styleSheet={{
+                            color: appConfig.theme.colors.neutrals[200],
+                            backgroundColor: appConfig.theme.colors.neutrals[900],
+                            padding: '3px 10px',
+                            borderRadius: '1000px',
+                            margin:'10px'
+                        }}
+                        >
+                        Link: <Text variant="body4"styleSheet={{
+                            color: appConfig.theme.colors.neutrals[200],
+                            backgroundColor: appConfig.theme.colors.neutrals[600],
+                            padding: '3px 10px',
+                            borderRadius: '1000px'
+                        }} tag="a"href={userData.html_url}>{userData.html_url}</Text>
+                        <br/>
+                        Seguidores: {userData.followers}
+                        <br/>
+                        Seguindo: {userData.following}
+                        </Text>
+                        <Button
+                            type='submit'
+                            label='Voltar'
+                            fullWidth
+                            buttonColors={{
+                                contrastColor: appConfig.theme.colors.neutrals["000"],
+                                mainColor: appConfig.theme.colors.primary[500],
+                                mainColorLight: appConfig.theme.colors.primary[400],
+                                mainColorStrong: appConfig.theme.colors.primary[600],
+                            }}
+                        />
                             
                     </Box>
                 </Box>

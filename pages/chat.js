@@ -81,13 +81,7 @@ export default function ChatPage() {
                     }}
                 >
                      <MessageList mensagens={listaDeMensagens} setListaDeMensagens={setListaDeMensagens} /> 
-                    {/* {listaDeMensagens.map((mensagemAtual) => {
-                        return (
-                            <li key={mensagemAtual.id}>
-                                {mensagemAtual.de}: {mensagemAtual.texto}
-                            </li>
-                        )
-                    })} */}
+                   
                     <Box
                         as="form"
                         styleSheet={{
@@ -180,7 +174,7 @@ function MessageList(props) {
         <Box
             tag="ul"
             styleSheet={{
-                overflow: 'scroll',
+                overflow: 'hiden;',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
@@ -205,6 +199,7 @@ function MessageList(props) {
                         <Box
                             styleSheet={{
                                 marginBottom: '8px',
+                                display:'flex',
                             }}
                         >
                             <Image
