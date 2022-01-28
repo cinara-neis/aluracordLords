@@ -2,28 +2,55 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
 import { useRouter } from 'next/router';
+import { createClient} from '@supabase/supabase-js';
+import { ThreeDots } from "react-loading-icons";
 
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxODk2MiwiZXhwIjoxOTU4ODk0OTYyfQ.xxIjeYitmIqi9MZJGhqynM8TuVaMLBX4QPjE0QFhzjo'
+const SUPABASE_URL = 'https://fevqvewltajaxyneieet.supabase.co';
+const supabaseClient =  createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
     const router = useRouter();
     const [mensagem, setMensagem] = React.useState('')
     const [listaDeMensagens, setListaDeMensagens]=React.useState([])
     const [tempMensagem, setTempMensagem] = React.useState('')
+    const [loading, setLoading] = React.useState(true);
 
     
+    React.useEffect(() => {
+        supabaseClient
+          .from('mensagens')
+          .select('*')
+          .order('id', { ascending: false })
+          .then(({ data }) => {
+            console.log("Dados da consulta: ", data);
+        if (data != null) {
+            setListaDeMensagens(data);
+        }
+        setLoading(false);
+      });
+      }, []);
+
     function handleNovaMensage(novaMensagem){
         const mensagem = {
-            id: listaDeMensagens.length +1,
             de: router.query.username,
             texto: novaMensagem
         }
 
-        setListaDeMensagens([
-            mensagem,
-            ...listaDeMensagens
-            
-        ])
-        setMensagem('')
+        supabaseClient
+            .from('mensagens')
+            .insert([
+                mensagem
+            ])
+            .then(({ data }) => {
+                console.log('Criando mensagem: ', data);
+                setListaDeMensagens([
+                    data[0],
+                    ...listaDeMensagens,
+                ]);
+        setMensagem('');
+        })
     }
    
     let username = router.query.username;
@@ -79,9 +106,24 @@ export default function ChatPage() {
                         borderRadius: '5px',
                         padding: '16px',
                     }}
-                >
-                     <MessageList mensagens={listaDeMensagens} setListaDeMensagens={setListaDeMensagens} /> 
-                   
+                > {loading ? (
+                    <Box
+                      styleSheet={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                      }}
+                    >
+                      <ThreeDots
+                        fill={appConfig.theme.colors.neutrals[800]}
+                        height="16px"
+                      />
+                    </Box>
+                  ) : (
+                    <MessageList mensagens={listaDeMensagens} setListaDeMensagens={setListaDeMensagens} /> 
+                  )}
                     <Box
                         as="form"
                         styleSheet={{
@@ -142,7 +184,7 @@ function Header() {
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
                 <Text variant='heading5'>
-                    Chat
+                    Chat dos Lords
                 </Text>
                 <Button
                     variant='tertiary'
@@ -174,7 +216,7 @@ function MessageList(props) {
         <Box
             tag="ul"
             styleSheet={{
-                overflow: 'hiden',
+                overflow: 'hiden;',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
@@ -210,7 +252,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/${router.query.username}.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong" onClick={function (infosDoEvento){
                                     infosDoEvento.preventDefault();
@@ -249,6 +291,5 @@ function MessageList(props) {
         </Box>
     )
 }
-
 
 
