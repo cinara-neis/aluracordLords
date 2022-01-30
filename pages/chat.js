@@ -1,9 +1,19 @@
-import { Box, Text, TextField, Image, Button } from '@skynexui/components';
+import { Box, Text, TextField, Image, Button, Icon } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
 import { useRouter } from 'next/router';
 import { createClient} from '@supabase/supabase-js';
 import { ThreeDots } from "react-loading-icons";
+import {ButtonSendSticker} from '../src/componentes/ButtonSendSticker';
+
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (respostaLive) => {
+            adicionaMensagem(respostaLive.new);
+        })
+        .subscribe();
+}
 
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxODk2MiwiZXhwIjoxOTU4ODk0OTYyfQ.xxIjeYitmIqi9MZJGhqynM8TuVaMLBX4QPjE0QFhzjo'
@@ -30,6 +40,14 @@ export default function ChatPage() {
         }
         setLoading(false);
       });
+      escutaMensagensEmTempoReal((novaMensagem) => {
+        setListaDeMensagens((valorAtualDaLista) => {
+          return [
+            novaMensagem,
+                 ...valorAtualDaLista
+            ]
+            })
+        })
       }, []);
 
     function handleNovaMensage(novaMensagem){
@@ -52,24 +70,38 @@ export default function ChatPage() {
         setMensagem('');
         })
     }
-   
-    let username = router.query.username;
-    React.useEffect(() => {
-        getUserData();
-    }, [username]);
-    
-    var gitHubUrl = `https://api.github.com/users/${username}`;
-  
-    const getUserData = async () => {
-            const response = await fetch(gitHubUrl);
-            const jsonData = await response.json();
-            if (!(jsonData && jsonData.message !== "Not Found") && username !== '') {
-                console.log('Username does not exist');
-                router.push({
-                    pathname:'/404'
-                  });
-            }
-        };
+
+    function handleDeletaMensagem(mensagemAtual) {
+        supabaseClient
+          .from("mensagens")
+          .delete()
+          .match({ id: mensagemAtual.id })
+          .then(({ data }) => {
+            const listaDeMensagensFiltrada = listaDeMensagens.filter((mensagem) => {
+              return mensagem.id != data[0].id;
+            });
+            setListaDeMensagens(listaDeMensagensFiltrada);
+          });
+      }
+
+    function Header() {
+        return (
+            <>
+                <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
+                    <Text variant='heading5'>
+                        Chat dos Lords
+                    </Text>
+                    <Button
+                        variant='tertiary'
+                        colorVariant='neutral'
+                        label='Logout'
+                        href="/"
+                    />
+                </Box>
+            </>
+        )
+    }
+
     return (
         <Box
             styleSheet={{
@@ -103,8 +135,8 @@ export default function ChatPage() {
                         height: '80%',
                         backgroundColor: appConfig.theme.colors.neutrals[500],
                         flexDirection: 'column',
-                        borderRadius: '5px',
-                        padding: '16px',
+                        borderRadius: '10px',
+                        padding: '15px',
                     }}
                 > {loading ? (
                     <Box
@@ -122,7 +154,7 @@ export default function ChatPage() {
                       />
                     </Box>
                   ) : (
-                    <MessageList mensagens={listaDeMensagens} setListaDeMensagens={setListaDeMensagens} /> 
+                    <MessageList mensagens={listaDeMensagens} handleDeletaMensagem={handleDeletaMensagem} /> 
                   )}
                     <Box
                         as="form"
@@ -140,7 +172,8 @@ export default function ChatPage() {
                                 border: '0',
                                 resize: 'none',
                                 borderRadius: '5px',
-                                padding: '6px',
+                                padding: '5px',
+                                marginTop: '10px',
                                 backgroundColor: appConfig.theme.colors.neutrals[800],
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
@@ -158,6 +191,14 @@ export default function ChatPage() {
                                     setMensagem(event.target.value)
                             }}
                         />
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                // console.log(
+                                //   "[USANDO O COMPONENTE] Salva esse sticker no banco"
+                                // );
+                                handleNovaMensage(`:sticker: ${sticker}`);
+                            }}
+                         />
                         <Button
                          type='button'
                          label='Enviar'
@@ -172,56 +213,28 @@ export default function ChatPage() {
                             setTempMensagem('')
                          }}
                          />
-                    </Box>
-                </Box>
-            </Box>
+          </Box>
         </Box>
-    )
-}
-
-function Header() {
-    return (
-        <>
-            <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
-                <Text variant='heading5'>
-                    Chat dos Lords
-                </Text>
-                <Button
-                    variant='tertiary'
-                    colorVariant='neutral'
-                    label='Logout'
-                    href="/"
-                />
-            </Box>
-        </>
-    )
+      </Box>
+    </Box>
+  );
 }
 
 function MessageList(props) {
-    const router = useRouter();
-
-    function handleDeleteMessage(mensagemId){
-        let novaLista = props.mensagens.filter((message)=>{
-            if(message.id != mensagemId){
-                return message
-            }
-        })
-
-        props.setListaDeMensagens([
-            ...novaLista
-        ])
-    }
-
+    console.log("MessageList", props);
+  
+    const handleDeletaMensagem = props.handleDeletaMensagem;
     return (
         <Box
             tag="ul"
             styleSheet={{
-                overflow: 'hiden;',
+                overflow: 'scroll',
+                wordBreak: 'break-word',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
                 color: appConfig.theme.colors.neutrals["000"],
-                marginBottom: '16px',
+                marginBottom: '1px',
             }}
         >
             {props.mensagens.map((mensagem)=>{
@@ -264,14 +277,6 @@ function MessageList(props) {
                                 }}> 
                                 {mensagem.de}
                             </Text>
-
-                            <Button
-                                type='button'
-                                label='X'
-                                styleSheet={{marginLeft:'3px',width: '20px',
-                                height: '20px',}}
-                                onClick={() => handleDeleteMessage(mensagem.id)}
-                            />
                             <Text
                                 styleSheet={{
                                     fontSize: '10px',
@@ -282,14 +287,33 @@ function MessageList(props) {
                             >
                                 {(new Date().toLocaleDateString())}
                             </Text>
+                            <Icon
+                                name={"FaTrash"}
+                                styleSheet={{
+                                    marginLeft: "5px",
+                                    width: "15px",
+                                    height: "15px",
+                                    color: appConfig.theme.colors.primary["950"],
+                                    hover: {
+                                    color: "white",
+                                    },
+                                    display: "inline-block",
+                                }}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    handleDeletaMensagem(mensagem);
+                                }}
+                                />
                         </Box>
-                        {mensagem.texto}
-                    </Text>
-                )
-            })}
-            
-        </Box>
-    )
+                        {mensagem.texto.startsWith(":sticker:") ? (
+              <Image src={mensagem.texto.replace(":sticker:", "")} />
+            ) : (
+              mensagem.texto
+            )}
+          </Text>
+        );
+      })}
+    </Box>
+  );
 }
-
 
