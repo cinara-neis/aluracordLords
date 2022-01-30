@@ -6,19 +6,20 @@ import { createClient} from '@supabase/supabase-js';
 import { ThreeDots } from "react-loading-icons";
 import {ButtonSendSticker} from '../src/componentes/ButtonSendSticker';
 
-function escutaMensagensEmTempoReal(adicionaMensagem) {
-    return supabaseClient
-        .from('mensagens')
-        .on('INSERT', (respostaLive) => {
-            adicionaMensagem(respostaLive.new);
-        })
-        .subscribe();
-}
 
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxODk2MiwiZXhwIjoxOTU4ODk0OTYyfQ.xxIjeYitmIqi9MZJGhqynM8TuVaMLBX4QPjE0QFhzjo'
 const SUPABASE_URL = 'https://fevqvewltajaxyneieet.supabase.co';
 const supabaseClient =  createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escutaMensagemEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+      .from("mensagens")
+      .on("INSERT", (respostaLive) => {
+        adicionaMensagem(respostaLive.new);
+      })
+      .subscribe();
+  }
 
 export default function ChatPage() {
     const router = useRouter();
@@ -30,24 +31,24 @@ export default function ChatPage() {
     
     React.useEffect(() => {
         supabaseClient
-          .from('mensagens')
-          .select('*')
-          .order('id', { ascending: false })
+          .from("mensagens")
+          .select("*")
+          .order("id", { ascending: false })
           .then(({ data }) => {
-            console.log("Dados da consulta: ", data);
-        if (data != null) {
             setListaDeMensagens(data);
-        }
-        setLoading(false);
-      });
-      escutaMensagensEmTempoReal((novaMensagem) => {
-        setListaDeMensagens((valorAtualDaLista) => {
-          return [
-            novaMensagem,
-                 ...valorAtualDaLista
-            ]
-            })
-        })
+          })
+
+            setLoading(false);
+        });
+    
+        const subscription = escutaMensagemEmTempoReal((novaMensagem) => {
+          setListaDeMensagens((valorAtualDaLista) => {
+            return [novaMensagem, ...valorAtualDaLista];
+         
+        });
+        return () => {
+          subscription.unsubscribe();
+        };
       }, []);
 
     function handleNovaMensage(novaMensagem){
